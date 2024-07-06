@@ -1,3 +1,113 @@
-Here are the revenue breakdowns of the automotive business units for three companies: SK Hynix, Micron, and MXIC. 
-I am trying to analyze the trend to determine if the automotive memory market is experiencing an uptrend.
+# Automotive Memory Revenue Breakdown Dashboard
+
+
+### Dashboard Link : 
+
+
+## Problem Statement
+These reports consist of one Excel pivot table and two Power BI dashboards.
+
+These dashboards help investors gain insights into the automotive memory market. By analyzing company revenues, it helps determine if there is an uptrend in the automotive industry, especially in Electric Vehicles (EVs).
+
+Since , there are three companies inside the research: SK Hynix, Micron, and MXIC. It can also brings you the insight of different sectors that companies are putting effort in. 
+
 I included MXIC in the research because they are one of the few companies pursuing advanced NOR solutions to work with the automotive industry.
+
+### Steps followed 
+- Step 1 : Review the companies' financial reports and listen to the earnings calls.
+- Step 2 : Create an Excel file to compile all data into a raw dataset.
+- Step 3 : Open Power BI to verify if the data makes sense.
+- Step 4 : Create a proper data table format for each dataset.because of the YoY, QoQ calculation needed. And Micron's fiscal year is different with the normal year, so the date would adjust as well. 
+for creating new table following DAX expression was written
+	DateTable = 
+ADDCOLUMNS (
+    CALENDAR (DATE(2020, 1, 1), DATE(2025, 12, 31)),  -- Adjust the dates as needed
+    "Year", YEAR([Date]),
+    "Month", MONTH([Date]),
+    "Day", DAY([Date]),
+    "MonthName", FORMAT([Date], "MMMM"),
+    "Quarter", "Q" & FORMAT([Date], "Q"),
+    "FiscalYear", IF(MONTH([Date]) >= 9, YEAR([Date]) + 1, YEAR([Date])),
+    "FiscalQuarter", SWITCH(TRUE(),
+        MONTH([Date]) >= 9 && MONTH([Date]) <= 11, "FQ1",
+        MONTH([Date]) >= 12 && MONTH([Date]) <= 2, "FQ2",
+        MONTH([Date]) >= 3 && MONTH([Date]) <= 5, "FQ3",
+        MONTH([Date]) >= 6 && MONTH([Date]) <= 8, "FQ4"
+    )
+)
+
+- Step 5 : Create YoY, QoQ Calculation measure columns to gain more insight from the data. 
+for creating new column following DAX expression was written.
+	Revenue QoQ = 
+VAR CR = Micron_Revenue[Total]
+VAR PR = CALCULATE(
+    SUM(Micron_Revenue[Total]),
+    DATEADD(DateTable[Date],-1,QUARTER),
+    FILTER(
+        Micron_Revenue,
+        NOT(ISBLANK(Micron_Revenue[Total]))
+    )
+)
+RETURN
+IF(
+    ISBLANK(Micron_Revenue[Total]),
+    BLANK(),
+    DIVIDE(CR - PR, PR, BLANK())
+)
+	Revenue YoY = 
+ VAR CurrentRevenue = Micron_Revenue[Total]
+ VAR PreviousRevenue = 
+ CALCULATE(
+         SUM(Micron_Revenue[Total]),
+        DATEADD(DateTable[Date],-1,YEAR),
+        FILTER(
+                'Micron_Revenue',
+                NOT(ISBLANK(Micron_Revenue[Total]))
+                )
+)
+RETURN
+IF(
+    ISBLANK(Micron_Revenue[Total]),
+    BLANK(),
+DIVIDE(CurrentRevenue - PreviousRevenue, PreviousRevenue,BLANK())
+)
+- Step 6 : In the report view, under the view tab, theme was selected.
+- Step 7 : Use clustered and bar graphs to compare revenue between different business units within the company. 
+# Snapshot of Dashboard (Power BI Service) & Pivot table (Excel)
+!["Micron"] (https://github.com/IIB224/Ian0818/assets/169453945/a97760e1-d5cb-4fba-9880-ba727342312f")
+
+!["SK_Hynix"] (https://github.com/IIB224/Ian0818/issues/2#issue-2393432622)
+
+!["Mxic Pivot table"] (https://github.com/IIB224/Ian0818/issues/6#issue-2393435875) 
+
+!["Mxic Graph"] (https://github.com/IIB224/Ian0818/issues/7#issue-2393436323)
+
+
+- Step 8 : Two to Three card visuals to represent the YoY, QoQ and Revenue
+	Using the visual level filter from the filters pane, basic filtering was applied, and non-relevant values were deselected for the automotive memory calculation.
+# Snapshot of Dashboard (Power BI Service)
+!["EBU Revenue"] (https://github.com/IIB224/Ian0818/issues/3#issue-2393434260)
+
+!["EBU YoY"] (https://github.com/IIB224/Ian0818/issues/4#issue-2393434742) 
+
+!["EBU QoQ"] (https://github.com/IIB224/Ian0818/issues/5#issue-2393434797)
+
+- Insight of Micron : 
+Total revenue and automotive memory revenue Embedded (EBU) are not tightly connected. Most sales demand is driven by Dram.  
+We can see that the demand for automotive memory is slightly increasing, but not very strongly.
+
+- Insight of SK Hynix : 
+Due to SK Hynix is the most important od HBM manufacturer, the revenue went up is because of the HBM demands and ASP rose as well. 
+More information : HBM requires twice of amounts of dram compare to normal NAND and DDR.
+
+-Insight of MXIC :
+It's hard to find data on the manufacturing of nanometers, but we can see from the conference call that the company is working with a 45nm process. At the moment, orders for the 55nm process are continually surpassing those for the 75nm process.
+
+According to the analytics graphs, the main growth is from the automotive industry. This is because MXIC is one of the few companies that put effort into 3D NOR and minimize the NOR flash process. However, we still need to check other companies' financial reports to verify if the automotive market is indeed picking up.
+
+I would like to follow up on more news about the advanced process that MXIC is pursuing right now because they have chosen a less-traveled path that could yield unexpected surprises in the future.
+
+
+
+
+
